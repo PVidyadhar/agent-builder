@@ -150,6 +150,60 @@ Strands Agent Builder leverages Amazon Bedrock Knowledge Bases to store and retr
 
 Create via AWS CLI or SDK:
 
+**Managed Knowledge Base (Recommended)**
+
+Managed knowledge bases let Bedrock handle embedding and storage automatically, requiring no external vector store setup:
+
+```bash
+aws bedrock-agent create-knowledge-base \
+  --name "my-managed-kb" \
+  --description "Strands Agent Builder KB (Managed)" \
+  --role-arn "arn:aws:iam::ACCOUNT:role/AmazonBedrockExecutionRoleForKnowledgeBase" \
+  --knowledge-base-configuration '{
+    "type": "MANAGED",
+    "managedKnowledgeBaseConfiguration": {
+      "embeddingModelType": "MANAGED"
+    }
+  }'
+```
+
+When using a managed knowledge base, set the knowledge base type so that retrieval uses the correct search configuration:
+
+```bash
+export KNOWLEDGE_BASE_TYPE="MANAGED"
+```
+
+Managed knowledge bases automatically use **agentic retrieval** (`AgenticRetrieveStream` API) which provides:
+- Intelligent query decomposition for complex questions
+- Managed reranking for improved relevance
+- Optional generated answers with citations (`generateResponse=true`)
+
+To disable agentic retrieval and use simple `Retrieve` API instead:
+```bash
+export USE_AGENTIC_RETRIEVAL="false"
+```
+
+> **SDK requirement:** AgenticRetrieveStream requires `boto3 >= 1.43.0` (Python) or `@aws-sdk/client-bedrock-agent-runtime >= 3.750.0` (JS/TS). If your SDK is older, the tool automatically falls back to the standard `Retrieve` API with `managedSearchConfiguration`.
+
+
+**Required IAM Permissions:**
+```json
+{
+  "Effect": "Allow",
+  "Action": [
+    "bedrock:Retrieve",
+    "bedrock:AgenticRetrieve"
+  ],
+  "Resource": "arn:aws:bedrock:<region>:<account-id>:knowledge-base/<kb-id>"
+}
+```
+
+**Resources:** [Build a Managed KB](https://docs.aws.amazon.com/bedrock/latest/userguide/kb-build-managed.html) | [Retrieve API](https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-retrieve.html) | [Agentic Retrieval](https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-agentic.html)
+
+**Vector Knowledge Base (Legacy)**
+
+Vector knowledge bases require you to provision and manage your own vector store (e.g., OpenSearch Serverless, Aurora PostgreSQL):
+
 ```bash
 # Example using AWS CLI
 aws bedrock-agent create-knowledge-base \
@@ -191,8 +245,12 @@ The ID format: `ABCDEFGHIJ` (10 characters)
 # Load and extend tools from your knowledge base
 strands --kb YOUR_KB_ID "Load my data_visualizer tool and add 3D plotting capabilities"
 
-# Or set a default knowledge base via environment variable
+# Use a managed knowledge base (specify type via CLI or env var)
+strands --kb YOUR_KB_ID --kb-type MANAGED "Find my most recent agent configuration"
+
+# Or set defaults via environment variables
 export STRANDS_KNOWLEDGE_BASE_ID="YOUR_KB_ID"
+export KNOWLEDGE_BASE_TYPE="MANAGED"
 strands "Find my most recent agent configuration and make it more efficient"
 ```
 
@@ -305,6 +363,7 @@ Strands Agent Builder also provides customization through environment variables:
 | STRANDS_CACHE_PROMPT | Prompt caching strategy | default |
 | STRANDS_SYSTEM_PROMPT | Custom system prompt (overrides .prompt file) | None |
 | STRANDS_KNOWLEDGE_BASE_ID | Default Knowledge Base ID | None |
+| KNOWLEDGE_BASE_TYPE | Knowledge base type for retrieval: `MANAGED` or `VECTOR` (default) | VECTOR |
 | STRANDS_TOOL_CONSOLE_MODE | Enable rich console UI | enabled |
 | BYPASS_TOOL_CONSENT | Skip tool confirmation prompts | false |
 

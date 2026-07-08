@@ -30,6 +30,13 @@ def main():
         help="Knowledge base ID to use for retrievals",
     )
     parser.add_argument(
+        "--kb-type",
+        "--knowledge-base-type",
+        dest="knowledge_base_type",
+        choices=["VECTOR", "MANAGED"],
+        help="Knowledge base type: VECTOR (default) or MANAGED (recommended for new projects)",
+    )
+    parser.add_argument(
         "--model-provider",
         type=model_utils.load_path,
         default="bedrock",
@@ -45,6 +52,7 @@ def main():
 
     # Get knowledge_base_id from args or environment variable
     knowledge_base_id = args.knowledge_base_id or os.getenv("STRANDS_KNOWLEDGE_BASE_ID")
+    knowledge_base_type = args.knowledge_base_type or os.getenv("KNOWLEDGE_BASE_TYPE", "VECTOR")
 
     model = model_utils.load_model(args.model_provider, args.model_config)
 
@@ -66,7 +74,7 @@ def main():
         query = " ".join(args.query)
         # Use retrieve if knowledge_base_id is defined
         if knowledge_base_id:
-            agent.tool.retrieve(text=query, knowledgeBaseId=knowledge_base_id)
+            agent.tool.retrieve(text=query, knowledgeBaseId=knowledge_base_id, knowledgeBaseType=knowledge_base_type)
 
         agent(query)
 
@@ -106,7 +114,11 @@ def main():
                 if user_input.strip():
                     # Use retrieve if knowledge_base_id is defined
                     if knowledge_base_id:
-                        agent.tool.retrieve(text=user_input, knowledgeBaseId=knowledge_base_id)
+                        agent.tool.retrieve(
+                            text=user_input,
+                            knowledgeBaseId=knowledge_base_id,
+                            knowledgeBaseType=knowledge_base_type,
+                        )
                     # Read welcome text and add it to the system prompt
                     welcome_result = agent.tool.welcome(action="view", record_direct_tool_call=False)
                     base_system_prompt = load_system_prompt()

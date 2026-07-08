@@ -220,7 +220,7 @@ class TestCommandLine:
         strands.main()
 
         # Verify retrieve was called
-        mock_agent.tool.retrieve.assert_called_with(text="test query", knowledgeBaseId="test-kb-id")
+        mock_agent.tool.retrieve.assert_called_with(text="test query", knowledgeBaseId="test-kb-id", knowledgeBaseType="VECTOR")
 
         # Verify conversation was stored
         mock_store_conversation.assert_called_with(mock_agent, "test query", "test-kb-id")
@@ -241,7 +241,7 @@ class TestCommandLine:
             strands.main()
 
         # Verify retrieve was called with the right KB ID
-        mock_agent_instance.tool.retrieve.assert_called_once_with(text="test query", knowledgeBaseId="env-kb-id")
+        mock_agent_instance.tool.retrieve.assert_called_once_with(text="test query", knowledgeBaseId="env-kb-id", knowledgeBaseType="VECTOR")
 
         # Verify store_conversation_in_kb was called
         mock_store.assert_called_once_with(mock_agent_instance, "test query", "env-kb-id")
@@ -281,7 +281,7 @@ class TestConfiguration:
         strands.main()
 
         # Verify retrieve was called with the right KB ID
-        mock_agent.tool.retrieve.assert_called_with(text="test query", knowledgeBaseId="env-kb-id")
+        mock_agent.tool.retrieve.assert_called_with(text="test query", knowledgeBaseId="env-kb-id", knowledgeBaseType="VECTOR")
 
         # Verify conversation was stored
         mock_store_conversation.assert_called_with(mock_agent, "test query", "env-kb-id")
@@ -360,7 +360,7 @@ class TestKnowledgeBaseIntegration:
         strands.main()
 
         # Verify retrieve was called with knowledge base ID
-        mock_agent.tool.retrieve.assert_called_with(text="test query", knowledgeBaseId="test-kb-id")
+        mock_agent.tool.retrieve.assert_called_with(text="test query", knowledgeBaseId="test-kb-id", knowledgeBaseType="VECTOR")
 
         # Verify store_conversation_in_kb was called
         mock_store_conversation.assert_called_once()
